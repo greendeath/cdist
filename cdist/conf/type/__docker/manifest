@@ -49,6 +49,8 @@ case "$os" in
         __package apt-transport-https
         __package ca-certificates
         __package gnupg2
+        __package curl
+        __package software-properties-common
       fi
       __apt_key_uri docker --name "Docker Release (CE deb) <docker@docker.com>" \
         --uri "https://download.docker.com/linux/${os}/gpg" --state "${state}"
@@ -56,6 +58,29 @@ case "$os" in
       require="__apt_key_uri/docker" __apt_source docker \
          --uri "https://download.docker.com/linux/${os}" \
          --distribution "$(cat "$__global/explorer/lsb_codename")" \
+         --state "${state}" \
+         --component "stable"
+      if [ "$version" != "latest" ]; then
+        require="__apt_source/docker" __package docker-ce --version "${version}" --state "${state}"
+      else
+        require="__apt_source/docker" __package docker-ce --state "${state}"
+      fi
+   ;;
+    devuan)
+      if [ "${state}" = "present" ]; then
+        __package apt-transport-https
+        __package ca-certificates
+        __package gnupg2
+        __package curl
+        __package software-properties-common
+        __package docker
+      fi
+      __apt_key_uri docker --name "Docker Release (CE deb) <docker@docker.com>" \
+        --uri "https://download.docker.com/linux/debian/gpg" --state "${state}"
+
+      require="__apt_key_uri/docker" __apt_source docker \
+         --uri "https://download.docker.com/linux/debian" \
+         --distribution "stretch" \
          --state "${state}" \
          --component "stable"
       if [ "$version" != "latest" ]; then
